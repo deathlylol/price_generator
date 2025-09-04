@@ -1,0 +1,331 @@
+:root {
+  --font-family-inter: 'Inter', sans-serif;
+  --text-white: rgba(255, 255, 255, 1);
+}
+
+.text-white {
+  color: var(--text-white);
+}
+
+
+/* CSS Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  width: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
+  /* margin: auto 0; */
+  display: flex;
+  /* align-content: center; */
+  align-items: center;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+.text-3 {
+  flex-grow: 0;
+  flex-shrink: 1;
+  flex-basis: auto;
+  font-family: var(--font-family-inter);
+  font-weight: 700;
+  font-size: 18px;
+  text-decoration: none;
+  text-transform: none;
+  color: var(--text-white);
+  text-align: center;
+  width: 100%;
+}
+
+.frame-30-2 {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  padding: 3px 0px 3px 0px;
+  flex-grow: 0;
+  flex-shrink: 1;
+  flex-basis: auto;
+  min-height: 50px;
+}
+
+.text-5 {
+  flex-grow: 0;
+  flex-shrink: 1;
+  flex-basis: auto;
+  opacity: 0.800000011920929;
+  font-family: var(--font-family-inter);
+  font-weight: 500;
+  font-size: 14px;
+  text-decoration: strikethrough;
+  text-transform: none;
+  color: var(--text-white);
+}
+
+.text-5 span,
+.text-9 span {
+  line-height: 10px;
+  height: 11px;
+  display: block;
+}
+
+.text-7 {
+  flex-grow: 0;
+  flex-shrink: 1;
+  flex-basis: auto;
+  font-family: var(--font-family-inter);
+  font-weight: 700;
+  font-size: 20px;
+  text-decoration: none;
+  text-transform: none;
+  color: var(--text-white);
+}
+
+.text-7 span {
+  line-height: 19px;
+  height: 18px;
+  display: block;
+}
+
+.frame-17-6 {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 4px;
+  padding: 9px 0px 9px 0px;
+  flex-grow: 0;
+  flex-shrink: 1;
+  flex-basis: auto;
+  border-radius: 999px;
+  width: 100%;
+  border-radius: var(--Radius-radius-full, 999px);
+  background: linear-gradient(180deg, #00B48C 0%, #02B88F 100%);
+}
+
+.text-9 {
+  flex-grow: 0;
+  flex-shrink: 1;
+  flex-basis: auto;
+  font-family: var(--font-family-inter);
+  font-weight: 500;
+  font-size: 14px;
+  text-decoration: none;
+  text-transform: none;
+  color: var(--text-white);
+}
+
+.frame-15-8 {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 5px;
+  padding: 0px;
+  flex-grow: 0;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
+.frame-31-4 {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0px 10px 0px;
+  flex-grow: 0;
+  flex-shrink: 1;
+  flex-basis: auto;
+  width: 100%;
+}
+
+.frame-30-1 {
+  @media (max-width: 1440px) {
+    .frame-30-1 {
+      padding-left: 24px;
+      padding-right: 24px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .frame-30-1 {
+      padding-left: 16px;
+      padding-right: 16px;
+    }
+  }
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  /* gap: 12px; */
+  padding: 4px 8px 4px 8px;
+  width: 100%;
+  height: 161px;
+  margin: 0 auto;
+  max-width: 228px;
+  flex-grow: 0;
+  flex-shrink: 1;
+  width: 100%;
+  border-radius: 8px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #652D86 0%, #550981 100%);
+}
+
+
+
+/* Стили для node-1 контейнера (аналогично simple и promotions) */
+.node-1 {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  align-items: flex-start !important;
+  gap: 15px !important;
+  padding: 20px !important;
+  width: 100% !important;
+  min-height: 378px !important;
+  margin: 0 auto !important;
+  max-width: 1200px !important;
+  flex-grow: 0 !important;
+  flex-shrink: 1 !important;
+  background-color: transparent !important;
+}
+
+/* Специальные стили для accessories блоков - сохраняем оригинальный дизайн */
+.block.accessories-block {
+  max-width: 228px !important;
+  margin-bottom: 0 !important;
+  background: linear-gradient(180deg, #652D86 0%, #550981 100%) !important;
+  border: none !important;
+  flex: 0 0 228px !important;
+  min-width: 228px !important;
+  border-radius: 8px !important;
+  padding: 4px 8px !important;
+  height: 161px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+}
+
+/* Стили для текста внутри accessories блоков */
+.block.accessories-block .text-3,
+.block.accessories-block .text-5,
+.block.accessories-block .text-7,
+.block.accessories-block .text-9 {
+  color: var(--text-white) !important;
+}
+
+/* Стили для flex-block и block (аналогично simple и promotions) */
+.flex-block {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: flex-start !important;
+  align-items: flex-start !important;
+  gap: 15px !important;
+  width: 100% !important;
+  max-width: 560px !important;
+  flex-wrap: nowrap !important;
+}
+
+.block {
+  max-width: 264px !important;
+  margin-bottom: 0 !important;
+  background-color: rgba(255, 255, 255, 1) !important;
+  border: 1px solid rgba(232, 232, 232, 1) !important;
+  flex: 0 0 264px !important;
+  min-width: 264px !important;
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+  .flex-block {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .block {
+    max-width: 100%;
+    flex: 0 0 auto;
+  }
+}
+
+/* Стили для печати - разрыв страницы после каждого второго ряда (2 ряда по 2) */
+@media print {
+  /* Принудительные отступы для всех страниц */
+  @page {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    margin-left: 10px;
+    margin-right: 10px;
+  }
+  
+  /* Современные CSS свойства для разрыва страниц */
+  .flex-block:nth-child(8n+1) {
+    break-before: page;
+  }
+  
+  /* Убираем разрыв для первого элемента */
+  .flex-block:first-child {
+    break-before: auto;
+  }
+  
+  /* Убираем лишние отступы при печати */
+  .node-1 {
+    padding: 10px !important;
+    gap: 10px !important;
+  }
+  
+  .flex-block {
+    margin-top: 5px !important;
+    margin-bottom: 5px !important;
+  }
+  
+  /* Убеждаемся, что каждый блок помещается на страницу */
+  .block {
+    break-inside: avoid;
+  }
+  
+  /* Дополнительные стили для правильных отступов при печати */
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  /* Добавляем отступ сверху для элементов, начинающих новую страницу */
+  .flex-block:nth-child(2n+1) {
+    padding-top: 20px !important;
+    margin-top: 0 !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Убираем CSS Grid, возвращаемся к Flexbox */
+  .node-1 {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 15px !important;
+  }
+  
+  .flex-block {
+    display: flex !important;
+    justify-content: flex-start !important;
+    gap: 15px !important;
+    width: 100% !important;
+    max-width: 560px !important;
+  }
+  
+  .block {
+    break-inside: avoid;
+    page-break-inside: avoid; /* Fallback для старых браузеров */
+  }
+}

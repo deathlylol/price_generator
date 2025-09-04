@@ -1,0 +1,17 @@
+{
+    "name": "price-generator/price-tags",
+    "description": "Генератор ценников для товаров",
+    "type": "project",
+    "require": {
+        "php": ">=7.4",
+        "phpoffice/phpspreadsheet": "^1.29"
+    },
+    "autoload": {
+        "psr-4": {
+            "PriceGenerator\\": "src/"
+        }
+    },
+    "scripts": {
+        "generate": "php price_generator.php"
+    }
+}

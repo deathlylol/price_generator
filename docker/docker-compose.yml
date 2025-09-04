@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  price-generator:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: price-generator
+    volumes:
+      # Монтируем Excel файлы
+      - ../excel:/app/excel:ro
+      # Монтируем результаты (чтобы они сохранялись на хосте)
+      - ../results:/app/results
+      # Монтируем шаблоны (если будут)
+      - ../templates:/app/templates:ro
+    working_dir: /app
+    # Переопределяем команду для интерактивного режима
+    command: ["php", "price_generator.php"]
+    
+  # Сервис для разработки с live reload
+  price-generator-dev:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: price-generator-dev
+    volumes:
+      - ..:/app
+      - /app/vendor  # Исключаем vendor из монтирования
+    working_dir: /app
+    command: ["tail", "-f", "/dev/null"]  # Контейнер будет работать постоянно
+    profiles:
+      - dev
