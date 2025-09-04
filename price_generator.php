@@ -29,9 +29,9 @@ class PriceTagGenerator
     }
 
     /**
-     * Основной метод для генерации всех ценников
+     * Основной метод для генерации списков ценников
      */
-    public function generateAll($mode = 'print')
+    public function generateAll($mode)
     {
         $excelFiles = [
             'accessories' => 'accessories.xlsx',
@@ -40,15 +40,7 @@ class PriceTagGenerator
             'simple_accessories' => 'simple_accessories.xlsx'
         ];
         
-        if ($mode === 'print') {
-            // Только лист для печати
-            echo "Создаем лист для печати...\n";
-            $this->generatePrintSheets($excelFiles);
-        } elseif ($mode === 'list') {
-            // Список всех ценников в одном файле
-            echo "Создаем список ценников...\n";
-            $this->generatePriceTagsList($excelFiles);
-        } elseif ($mode === 'simple-list') {
+        if ($mode === 'simple-list') {
             // Список simple ценников используя оригинальный шаблон
             echo "Создаем список simple ценников используя шаблон...\n";
             $this->generateSimplePriceTagsList($excelFiles['simple']);
@@ -65,54 +57,15 @@ class PriceTagGenerator
             echo "Создаем список simple_accessories ценников используя шаблон...\n";
             $this->generateSimpleAccessoriesPriceTagsList($excelFiles['simple_accessories']);
         } else {
-            // Только отдельные ценники
-            foreach ($excelFiles as $type => $filename) {
-                echo "Обрабатываем файл: {$filename}\n";
-                $this->processExcelFile($type, $filename);
-            }
+            echo "Неизвестный режим: {$mode}\n";
+            echo "Доступные режимы: simple-list, promotions-list, accessories-list, simple-accessories-list\n";
+            return false;
         }
         
         echo "Генерация ценников завершена!\n";
+        return true;
     }
 
-    /**
-     * Обработка Excel файла
-     */
-    private function processExcelFile($type, $filename)
-    {
-        $filePath = $this->excelPath . $filename;
-        
-        if (!file_exists($filePath)) {
-            echo "Файл {$filename} не найден\n";
-            return;
-        }
-        
-        try {
-            $spreadsheet = IOFactory::load($filePath);
-            $worksheet = $spreadsheet->getActiveSheet();
-            $data = $this->parseExcelData($worksheet);
-            
-            $outputDir = $this->resultsPath . $type . '/';
-            if (!is_dir($outputDir)) {
-                mkdir($outputDir, 0755, true);
-            }
-            
-            foreach ($data as $index => $item) {
-                $html = $this->generateSinglePriceTag($type, $item);
-                $filename = $this->generateFilename($item, $index);
-                $filePath = $outputDir . $filename;
-                
-                file_put_contents($filePath, $html);
-                echo "Создан ценник: {$filename}\n";
-            }
-            
-            // Копируем изображения
-            $this->copyImagesToResults($outputDir);
-            
-        } catch (Exception $e) {
-            echo "Ошибка при обработке файла {$filename}: " . $e->getMessage() . "\n";
-        }
-    }
 
     /**
      * Парсинг данных из Excel
@@ -574,16 +527,6 @@ class PriceTagGenerator
         return $html;
     }
     
-    /**
-     * Обновление путей к изображениям для печати
-     */
-    private function updateImagePathsForPrint($html)
-    {
-        // Для печати используем абсолютные пути к изображениям в assets
-        $html = str_replace('images/', 'assets/images/', $html);
-        
-        return $html;
-    }
 
     /**
      * Копирование изображений в папку результатов
@@ -626,345 +569,10 @@ class PriceTagGenerator
         closedir($dir);
     }
 
-    /**
-     * Генерация листов для печати
-     */
-    private function generatePrintSheets($excelFiles)
-    {
-        // Генерируем отдельный лист печати для каждого типа товаров
-        foreach ($excelFiles as $type => $filename) {
-            echo "Создаем лист для печати {$type}...\n";
-            $this->generatePrintSheetForType($type, $filename);
-        }
-    }
+
     
-    /**
-     * Генерация листа печати для конкретного типа товаров
-     */
-    private function generatePrintSheetForType($type, $filename)
-    {
-        $filePath = $this->excelPath . $filename;
-        
-        if (!file_exists($filePath)) {
-            echo "Файл {$filename} не найден\n";
-            return;
-        }
-        
-        try {
-            $spreadsheet = IOFactory::load($filePath);
-            $worksheet = $spreadsheet->getActiveSheet();
-            $data = $this->parseExcelData($worksheet);
-            
-            if (empty($data)) {
-                echo "Нет данных для типа {$type}\n";
-                return;
-            }
-            
-            // Группируем товары по 4 штуки (2×2 сетка)
-            $itemsPerPage = 4;
-            $pages = array_chunk($data, $itemsPerPage);
-            
-            // Создаем HTML для печати с использованием шаблона
-            $printHtml = $this->createPrintHtmlWithTemplate($type, $pages);
-            
-            // Создаем папку для типа товаров
-            $outputDir = $this->resultsPath . $type . '/';
-            if (!is_dir($outputDir)) {
-                mkdir($outputDir, 0755, true);
-            }
-            
-            // Сохраняем в файл
-            $printFile = $outputDir . 'print_sheet.html';
-            file_put_contents($printFile, $printHtml);
-            
-            echo "Создан лист для печати {$type}: {$printFile}\n";
-            echo "Всего страниц: " . count($pages) . "\n";
-            
-        } catch (Exception $e) {
-            echo "Ошибка при обработке файла {$filename}: " . $e->getMessage() . "\n";
-        }
-    }
 
-    /**
-     * Создание HTML для печати с использованием шаблонов
-     */
-    private function createPrintHtmlWithTemplate($type, $pages)
-    {
-        // Загружаем HTML и CSS из оригинальных шаблонов
-        $htmlTemplateFile = $this->templatesPath . $type . '/index.html';
-        $cssFile = $this->templatesPath . $type . '/styles.css';
-        
-        if (!file_exists($htmlTemplateFile)) {
-            return $this->createPrintHtmlFallback($type, $pages);
-        }
-        
-        $htmlTemplate = file_get_contents($htmlTemplateFile);
-        $css = '';
-        if (file_exists($cssFile)) {
-            $css = file_get_contents($cssFile);
-        }
-        
-        // Создаем HTML для печати на основе оригинального шаблона
-        $html = '<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Лист для печати ценников - ' . ucfirst($type) . '</title>
-    <link href="https://fonts.googleapis.com/css?family=Inter&display=swap" rel="stylesheet">
-    <style>
-        @media print {
-            body { margin: 0; }
-            .page { page-break-after: always; }
-            .page:last-child { page-break-after: avoid; }
-        }
-        
-        body {
-            margin: 0;
-            padding: 20px;
-            font-family: "Inter", sans-serif;
-            background: white;
-        }
-        
-        .page {
-            width: 794px;
-            min-height: 1123px;
-            margin: 0 auto 20px auto;
-            border: 1px solid #ccc;
-            padding: 20px;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            align-items: center;
-        }
-        
-        .price-tag-row {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            width: 100%;
-        }
-        
-        .price-tag {
-            width: 264px;
-            height: auto;
-            min-height: 378px;
-            border-radius: 8px;
-            padding: 15px;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-            overflow: visible;
-            position: relative;
-            background: white;
-            border: 1px solid #eee;
-            flex-shrink: 0;
-        }
-        
-        .page-info {
-            text-align: center;
-            font-size: 12px;
-            color: #666;
-            margin-top: 10px;
-        }
-        
-        ' . $css . '
-    </style>
-</head>
-<body>';
-        
-                // Создаем страницы с ценниками
-        foreach ($pages as $pageIndex => $pageItems) {
-            $html .= '<div class="page">';
-
-            // Группируем ценники по 2 в ряд
-            for ($i = 0; $i < count($pageItems); $i += 2) {
-                $html .= '<div class="price-tag-row">';
-                
-                // Первый ценник в ряду
-                $html .= $this->createPriceTagFromOriginalTemplate($type, $pageItems[$i], $htmlTemplate);
-                
-                // Второй ценник в ряду (если есть)
-                if ($i + 1 < count($pageItems)) {
-                    $html .= $this->createPriceTagFromOriginalTemplate($type, $pageItems[$i + 1], $htmlTemplate);
-                }
-                
-                $html .= '</div>';
-            }
-
-            // Добавляем информацию о странице
-            $html .= '<div class="page-info">Страница ' . ($pageIndex + 1) . '</div>';
-            $html .= '</div>';
-        }
-        
-        $html .= '</body></html>';
-        
-        return $html;
-    }
     
-    /**
-     * Fallback метод для создания HTML печати
-     */
-    private function createPrintHtmlFallback($type, $pages)
-    {
-        $cssFile = $this->templatesPath . $type . '/styles.css';
-        $css = '';
-        if (file_exists($cssFile)) {
-            $css = file_get_contents($cssFile);
-        }
-        
-        $html = '<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Лист для печати ценников - ' . ucfirst($type) . '</title>
-    <style>
-        @media print {
-            body { margin: 0; }
-            .page { page-break-after: always; }
-            .page:last-child { page-break-after: avoid; }
-        }
-        
-        body {
-            margin: 0;
-            padding: 20px;
-            font-family: Arial, sans-serif;
-            background: white;
-        }
-        
-        .page {
-            width: 794px;
-            min-height: 1123px;
-            margin: 0 auto 20px auto;
-            border: 1px solid #ccc;
-            padding: 20px;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            align-items: center;
-        }
-        
-        .price-tag-row {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            width: 100%;
-        }
-        
-        .price-tag {
-            width: 264px;
-            height: auto;
-            min-height: 378px;
-            border: 2px solid #333;
-            border-radius: 10px;
-            padding: 15px;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-            background: white;
-            overflow: visible;
-            flex-shrink: 0;
-        }
-        
-        .page-info {
-            text-align: center;
-            font-size: 12px;
-            color: #666;
-            margin-top: 10px;
-        }
-        
-        ' . $css . '
-    </style>
-</head>
-<body>';
-        
-        foreach ($pages as $pageIndex => $pageItems) {
-            $html .= '<div class="page">';
-            
-            foreach ($pageItems as $item) {
-                $html .= $this->createPriceTagFromTemplate($type, $item);
-            }
-            
-            // Добавляем информацию о странице
-            $html .= '<div class="page-info">Страница ' . ($pageIndex + 1) . '</div>';
-            $html .= '</div>';
-        }
-        
-        $html .= '</body></html>';
-        
-        return $html;
-    }
-
-    /**
-     * Создание ценника из шаблона для печати
-     */
-    private function createPriceTagFromTemplate($type, $item)
-    {
-        $templateFile = $this->templatesPath . $type . '/index.html';
-        
-        if (!file_exists($templateFile)) {
-            return $this->createCompactPriceTag($item);
-        }
-        
-        $html = file_get_contents($templateFile);
-        
-        // Заполняем шаблон данными
-        switch ($type) {
-            case 'accessories':
-                $html = $this->fillAccessoriesTemplate($html, $item);
-                break;
-            case 'promotions':
-                $html = $this->fillPromotionsTemplate($html, $item);
-                break;
-            case 'simple':
-                $html = $this->fillSimpleTemplate($html, $item);
-                break;
-        }
-        
-        // Обновляем пути к изображениям для печати
-        $html = $this->updateImagePathsForPrint($html);
-        
-        // Оборачиваем в контейнер для печати
-        return '<div class="price-tag">' . $html . '</div>';
-    }
-    
-    /**
-     * Создание ценника из оригинального шаблона для печати
-     */
-    private function createPriceTagFromOriginalTemplate($type, $item, $htmlTemplate)
-    {
-        // Копируем HTML шаблон
-        $html = $htmlTemplate;
-        
-        // Заполняем шаблон данными
-        switch ($type) {
-            case 'accessories':
-                $html = $this->fillAccessoriesTemplate($html, $item);
-                break;
-            case 'promotions':
-                $html = $this->fillPromotionsTemplate($html, $item);
-                break;
-            case 'simple':
-                $html = $this->fillSimpleTemplate($html, $item);
-                break;
-        }
-        
-        // Обновляем пути к изображениям для печати
-        $html = $this->updateImagePathsForPrint($html);
-        
-        // Убираем лишние теги body и html, оставляем только содержимое
-        $html = preg_replace('/<body[^>]*>(.*)<\/body>/s', '$1', $html);
-        $html = preg_replace('/<html[^>]*>(.*)<\/html>/s', '$1', $html);
-        $html = preg_replace('/<head>.*<\/head>/s', '', $html);
-        
-        // Оборачиваем в контейнер для печати
-        return '<div class="price-tag">' . $html . '</div>';
-    }
     
 
     
@@ -974,77 +582,6 @@ class PriceTagGenerator
     
 
     
-    /**
-     * Создание компактного ценника для печати
-     */
-    private function createCompactPriceTag($item)
-    {
-        $html = '<div class="price-tag">';
-        
-        // Бейдж акции (если есть тип)
-        if (isset($item['type']) && $item['type'] === 'promotions') {
-            $html .= '<div class="promotion-badge">АКЦИЯ</div>';
-        }
-        
-        // Название товара
-        if (isset($item['Название товара'])) {
-            $html .= '<div class="product-name">' . htmlspecialchars($item['Название товара']) . '</div>';
-        } elseif (isset($item['Название'])) {
-            $html .= '<div class="product-name">' . htmlspecialchars($item['Название']) . '</div>';
-        }
-        
-        // Характеристики
-        $specs = [];
-        if (isset($item['Камера ']) && !empty($item['Камера '])) {
-            $specs[] = 'Камера: ' . htmlspecialchars($item['Камера ']);
-        }
-        if (isset($item['Дисплей']) && !empty($item['Дисплей'])) {
-            $specs[] = 'Дисплей: ' . htmlspecialchars($item['Дисплей']);
-        }
-        if (isset($item['Батарея']) && !empty($item['Батарея'])) {
-            $specs[] = 'Батарея: ' . htmlspecialchars($item['Батарея']);
-        }
-        if (isset($item['Память']) && !empty($item['Память'])) {
-            $specs[] = 'Память: ' . htmlspecialchars($item['Память']);
-        }
-        
-        if (!empty($specs)) {
-            $html .= '<div class="product-description">' . implode('<br>', $specs) . '</div>';
-        }
-        
-        // Цены
-        if (isset($item['Цена без рассрочки']) && !empty($item['Цена без рассрочки'])) {
-            $price = htmlspecialchars($item['Цена без рассрочки']);
-            if (!str_contains($price, 'сум')) {
-                $price .= ' сум';
-            }
-            $html .= '<div class="price">' . $price . '</div>';
-        } elseif (isset($item['Цена']) && !empty($item['Цена'])) {
-            $price = htmlspecialchars($item['Цена']);
-            if (!str_contains($price, 'сум')) {
-                $price .= ' сум';
-            }
-            $html .= '<div class="price">' . $price . '</div>';
-        }
-        
-        // Старая цена для акций
-        if ($item['type'] === 'promotions' && isset($item['Старая Цена']) && !empty($item['Старая Цена'])) {
-            $oldPrice = htmlspecialchars($item['Старая Цена']);
-            if (!str_contains($oldPrice, 'сум')) {
-                $oldPrice .= ' сум';
-            }
-            $html .= '<div class="old-price">' . $oldPrice . '</div>';
-        }
-        
-        // ID товара
-        if (isset($item['ID товара (QR Code)'])) {
-            $html .= '<div class="barcode">ID: ' . htmlspecialchars($item['ID товара (QR Code)']) . '</div>';
-        }
-        
-        $html .= '</div>';
-        
-        return $html;
-    }
     
     /**
      * Генерация имени файла
@@ -1076,286 +613,7 @@ class PriceTagGenerator
         return substr($filename, 0, 50);
     }
 
-    /**
-     * Генерация списка всех ценников в одном файле
-     */
-    private function generatePriceTagsList($excelFiles)
-    {
-        $allPriceTags = [];
-        
-        // Собираем все ценники из всех Excel файлов
-        foreach ($excelFiles as $type => $filename) {
-            $filePath = $this->excelPath . $filename;
-            
-            if (!file_exists($filePath)) {
-                echo "Файл {$filename} не найден\n";
-                continue;
-            }
-            
-            try {
-                $spreadsheet = IOFactory::load($filePath);
-                $worksheet = $spreadsheet->getActiveSheet();
-                $data = $this->parseExcelData($worksheet);
-                
-                foreach ($data as $item) {
-                    $item['type'] = $type; // Добавляем тип для идентификации
-                    $allPriceTags[] = $item;
-                }
-                
-                echo "Загружено {$type}: " . count($data) . " товаров\n";
-                
-            } catch (Exception $e) {
-                echo "Ошибка при обработке файла {$filename}: " . $e->getMessage() . "\n";
-            }
-        }
-        
-        if (empty($allPriceTags)) {
-            echo "Нет данных для генерации списка ценников\n";
-            return;
-        }
-        
-        // Создаем HTML файл со списком всех ценников
-        $html = $this->createPriceTagsListHtml($allPriceTags);
-        
-        // Сохраняем в файл
-        $outputFile = $this->resultsPath . 'price_tags_list.html';
-        file_put_contents($outputFile, $html);
-        
-        echo "Создан список ценников: {$outputFile}\n";
-        echo "Всего товаров: " . count($allPriceTags) . "\n";
-    }
     
-    /**
-     * Создание HTML для списка ценников
-     */
-    private function createPriceTagsListHtml($priceTags)
-    {
-        $html = '<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Список всех ценников</title>
-    <link href="https://fonts.googleapis.com/css?family=Inter&display=swap" rel="stylesheet">
-    <style>
-        *, *::before, *::after { box-sizing: border-box; }
-        body {
-            margin: 0;
-            padding: 20px;
-            font-family: "Inter", sans-serif;
-            background: #f5f5f5;
-        }
-        
-        .lst-container {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            max-width: 1120px;
-            margin: 0 auto;
-        }
-        
-        .lst-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(264px, 1fr));
-            gap: 20px;
-            width: 100%;
-            align-items: start;
-        }
-        
-        .lst-item {
-            background: white;
-            border-radius: 8px;
-            border: 1px solid #e8e8e8;
-            padding: 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 540px;
-        }
-        
-        .lst-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        
-        .lst-image {
-            width: 60px;
-            height: 60px;
-            border-radius: 4px;
-        }
-        
-        .lst-title {
-            font-size: 16px;
-            font-weight: 700;
-            color: #1e1e1e;
-            margin: 0;
-        }
-        
-        .lst-specs {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        
-        .lst-spec-item {
-            background: #fafafa;
-            padding: 8px;
-            border-radius: 4px;
-            text-align: center;
-        }
-        
-        .lst-spec-label {
-            font-size: 10px;
-            color: #6b6b6b;
-            margin-bottom: 2px;
-        }
-        
-        .lst-spec-value {
-            font-size: 12px;
-            font-weight: 500;
-            color: #1e1e1e;
-        }
-        
-        .lst-prices {
-            background: linear-gradient(180deg, #652D86 0%, #550981 100%);
-            border-radius: 6px;
-            padding: 15px;
-            color: white;
-        }
-        
-        .lst-installment {
-            margin-bottom: 10px;
-        }
-        
-        .lst-installment-label {
-            font-size: 9px;
-            font-style: italic;
-            margin-bottom: 5px;
-        }
-        
-        .lst-installment-value {
-            font-size: 20px;
-            font-weight: 700;
-        }
-        
-        .lst-regular {
-            font-size: 17px;
-            font-weight: 500;
-        }
-        
-        .lst-type {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: #652D86;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 10px;
-            font-weight: 500;
-        }
-        
-        @media (max-width: 768px) {
-            .lst-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="lst-container">
-        <h1>Список всех ценников</h1>
-        <div class="lst-grid">';
-        
-        foreach ($priceTags as $item) {
-            $html .= $this->createPriceTagItemHtml($item);
-        }
-        
-        $html .= '</div>
-    </div>
-</body>
-</html>';
-        
-        return $html;
-    }
-    
-    /**
-     * Создание HTML для одного ценника в списке
-     */
-    private function createPriceTagItemHtml($item)
-    {
-        $type = $item['type'] ?? 'simple';
-        $typeLabel = [
-            'simple' => 'Обычный',
-            'promotions' => 'Акция',
-            'accessories' => 'Аксессуар'
-        ][$type] ?? 'Товар';
-        
-        $html = '<div class="lst-item" style="position: relative;">
-            <div class="lst-type">' . $typeLabel . '</div>
-            <div class="lst-header">
-                <img src="../assets/images/node-4.svg" class="lst-image" alt="Товар" />
-                <h3 class="lst-title">';
-        
-        // Название товара
-        if (isset($item['Название товара'])) {
-            $html .= htmlspecialchars($item['Название товара']);
-        } elseif (isset($item['Название'])) {
-            $html .= htmlspecialchars($item['Название']);
-        } else {
-            $html .= 'Название не указано';
-        }
-        
-        $html .= '</h3>
-            </div>
-            <div class="lst-specs">';
-        
-        // Характеристики
-        $specs = [];
-        if (isset($item['Камера ']) && !empty($item['Камера '])) {
-            $specs[] = ['Камера', $item['Камера ']];
-        }
-        if (isset($item['Дисплей']) && !empty($item['Дисплей'])) {
-            $specs[] = ['Дисплей', $item['Дисплей']];
-        }
-        if (isset($item['Батарея']) && !empty($item['Батарея'])) {
-            $specs[] = ['Батарея', $item['Батарея']];
-        }
-        if (isset($item['Память']) && !empty($item['Память'])) {
-            $specs[] = ['Память', $item['Память']];
-        }
-        
-            foreach ($specs as $spec) {
-            $html .= '<div class="lst-spec-item">
-                <div class="lst-spec-label">' . htmlspecialchars($spec[0]) . '</div>
-                <div class="lst-spec-value">' . htmlspecialchars($spec[1]) . '</div>
-            </div>';
-        }
-        
-        $html .= '</div>
-            <div class="lst-prices">';
-        
-        // Цены
-        if (isset($item['Цена с рассрочкой']) && !empty($item['Цена с рассрочкой'])) {
-            $html .= '<div class="lst-installment">
-                <div class="lst-installment-label">Цена в рассрочку:</div>
-                <div class="lst-installment-value">от ' . $this->formatPrice($item['Цена с рассрочкой']) . '/мес</div>
-            </div>';
-        }
-        
-        if (isset($item['Цена без рассрочки']) && !empty($item['Цена без рассрочки'])) {
-            $html .= '<div class="lst-regular">' . $this->formatPrice($item['Цена без рассрочки']) . '</div>';
-        } elseif (isset($item['Цена']) && !empty($item['Цена'])) {
-            $html .= '<div class="lst-regular">' . $this->formatPrice($item['Цена']) . '</div>';
-        }
-        
-        $html .= '</div>
-        </div>';
-        
-        return $html;
-    }
 
     /**
      * Генерация списка simple ценников используя оригинальный шаблон
@@ -2197,18 +1455,18 @@ if (php_sapi_name() === 'cli') {
     $generator = new PriceTagGenerator();
     
     // Режим генерации: 'print' - только лист для печати, 'individual' - отдельные ценники
-    $mode = isset($argv[1]) ? $argv[1] : 'print';
+    if (!isset($argv[1])) {
+        echo "Использование:\n";
+        echo "php price_generator.php simple-list - генерация списка simple ценников используя шаблон\n";
+        echo "php price_generator.php promotions-list - генерация списка promotions ценников используя шаблон\n";
+        echo "php price_generator.php accessories-list - генерация списка accessories ценников используя шаблон\n";
+        echo "php price_generator.php simple-accessories-list - генерация списка simple_accessories ценников используя шаблон\n";
+        exit(1);
+    }
     
-    if ($mode === 'print') {
-        echo "Режим: Генерация листа для печати\n";
-        $generator->generateAll('print');
-    } elseif ($mode === 'individual') {
-        echo "Режим: Генерация отдельных ценников\n";
-        $generator->generateAll('individual');
-    } elseif ($mode === 'list') {
-        echo "Режим: Генерация списка ценников\n";
-        $generator->generateAll('list');
-    } elseif ($mode === 'simple-list') {
+    $mode = $argv[1];
+    
+    if ($mode === 'simple-list') {
         echo "Режим: Генерация списка simple ценников используя шаблон\n";
         $generator->generateAll('simple-list');
     } elseif ($mode === 'promotions-list') {
@@ -2221,11 +1479,8 @@ if (php_sapi_name() === 'cli') {
         echo "Режим: Генерация списка simple_accessories ценников используя шаблон\n";
         $generator->generateAll('simple-accessories-list');
     } else {
+        echo "Неизвестный режим: {$mode}\n";
         echo "Использование:\n";
-        echo "  php price_generator.php          - генерация листа для печати (по умолчанию)\n";
-        echo "  php price_generator.php print    - генерация листа для печати\n";
-        echo "  php price_generator.php individual - генерация отдельных ценников\n";
-        echo "  php price_generator.php list     - генерация списка ценников\n";
         echo "  php price_generator.php simple-list - генерация списка simple ценников используя шаблон\n";
         echo "  php price_generator.php promotions-list - генерация списка promotions ценников используя шаблон\n";
         echo "  php price_generator.php accessories-list - генерация списка accessories ценников используя шаблон\n";
