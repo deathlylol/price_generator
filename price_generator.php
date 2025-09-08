@@ -696,14 +696,11 @@ class PriceTagGenerator
             // Создаем flex-block с 2 ценниками (1 ряд)
             $html .= '<div class="flex-block">';
             
-            // Добавляем 2 товара в ряд, используя оригинальный шаблон
+            // Добавляем 2 товара в ряд, используя createSimplePriceTagBlock
             for ($i = 0; $i < count($blockItems); $i++) {
-                // Заполняем шаблон данными товара
-                $itemHtml = $this->fillSimpleTemplate($template, $blockItems[$i]);
-                // Извлекаем только первый блок ценника (div.block) из заполненного шаблона
-                if (preg_match('/<div\s+class="block"[^>]*>.*?<\/div>\s*<\/div>\s*<\/div>\s*<\/div>\s*<\/div>/s', $itemHtml, $matches)) {
-                    $html .= $matches[0];
-                }
+                // Создаем блок ценника с правильными данными
+                $itemHtml = $this->createSimplePriceTagBlock($blockItems[$i]);
+                $html .= $itemHtml;
             }
             
             $html .= '</div>';
@@ -748,11 +745,11 @@ class PriceTagGenerator
                     <div class="frame-6-10">
                         <div class="frame-7-11">
                             <div class="icons-sbi-12">
-                                <img src="images/vector-13.svg" class="vector-13" alt="vector" />
+                                <img src="images/vector-13.svg" class="vector" alt="vector" />
                             </div>
                             <div class="frame-12-14">
-                                <p class="text-15"><span class="text-rgb-107-107-107">Камера</span></p>
-                                <p class="text-16"><span class="text-rgb-30-30-30">';
+                                <p class="text-15 char-t"><span class="text-rgb-107-107-107">Камера</span></p>
+                                <p class="text-16 char-d"><span class="text-rgb-30-30-30">';
         
         // Характеристика камеры
         if (isset($item['Камера ']) && !empty($item['Камера '])) {
@@ -766,11 +763,11 @@ class PriceTagGenerator
                         </div>
                         <div class="frame-8-17">
                             <div class="icons-sbi-18">
-                                <img src="images/vector-19.svg" class="vector-19" alt="vector" />
+                                <img src="images/vector-19.svg" class="vector" alt="vector" />
                             </div>
                             <div class="frame-12-20">
-                                <p class="text-21"><span class="text-rgb-107-107-107">Дисплей</span></p>
-                                <p class="text-22"><span class="text-rgb-30-30-30">';
+                                <p class="text-21 char-t"><span class="text-rgb-107-107-107">Дисплей</span></p>
+                                <p class="text-22 char-d"><span class="text-rgb-30-30-30">';
         
         // Характеристика дисплея
         if (isset($item['Дисплей']) && !empty($item['Дисплей'])) {
@@ -786,11 +783,11 @@ class PriceTagGenerator
                     <div class="frame-5-23">
                         <div class="frame-7-24">
                             <div class="icons-sbi-25">
-                                <img src="images/vector-26.svg" class="vector-26" alt="vector" />
+                                <img src="images/vector-26.svg" class="vector" alt="vector" />
                             </div>
                             <div class="frame-12-27">
-                                <p class="text-28"><span class="text-rgb-107-107-107">Батарея</span></p>
-                                <p class="text-29"><span class="text-rgb-30-30-30">';
+                                <p class="text-28 char-t"><span class="text-rgb-107-107-107">Батарея</span></p>
+                                <p class="text-29 char-d"><span class="text-rgb-30-30-30">';
         
         // Характеристика батареи
         if (isset($item['Батарея']) && !empty($item['Батарея'])) {
@@ -804,11 +801,11 @@ class PriceTagGenerator
                         </div>
                         <div class="frame-8-30">
                             <div class="icons-sbi-31">
-                                <img src="images/vector-32.svg" class="vector-32" alt="vector" />
+                                <img src="images/vector-32.svg" class="vector" alt="vector" />
                             </div>
                             <div class="frame-12-33">
-                                <p class="text-34"><span class="text-rgb-107-107-107">Память</span></p>
-                                <p class="text-35"><span class="text-rgb-30-30-30">';
+                                <p class="text-34 char-t"><span class="text-rgb-107-107-107">Память</span></p>
+                                <p class="text-35 char-d"><span class="text-rgb-30-30-30">';
         
         // Характеристика памяти
         if (isset($item['Память']) && !empty($item['Память'])) {
@@ -833,7 +830,7 @@ class PriceTagGenerator
         
         // Цена в рассрочку - если пустая, показываем прочерк
         if (isset($item['Цена в рассорочку']) && !empty($item['Цена в рассорочку'])) {
-            $html .= $this->formatPrice($item['Цена в рассорочку']);
+            $html .= number_format($item['Цена в рассорочку'], 0, ',', ' ');
         } else {
             // Если цены в рассрочку нет, показываем прочерк
             $html .= '—';
@@ -1255,9 +1252,9 @@ class PriceTagGenerator
             <div class="frame-31-4">
                 <p class="text-5"><span class="text-white">';
         
-        // Старая цена (если есть)
-        if (isset($item['Старая цена']) && !empty($item['Старая цена'])) {
-            $html .= $this->formatPrice($item['Старая цена']);
+        // Старая цена (вверху, зачеркнута) - из поля "старая цена"
+        if (isset($item['старая цена']) && !empty($item['старая цена'])) {
+            $html .= $this->formatPrice($item['старая цена']);
         } else {
             $html .= '—';
         }
@@ -1266,7 +1263,7 @@ class PriceTagGenerator
                 <div class="frame-17-6">
                     <p class="text-7"><span class="text-white">';
         
-        // Текущая цена
+        // Актуальная цена (внизу) - из поля "Цена"
         if (isset($item['Цена']) && !empty($item['Цена'])) {
             $html .= $this->formatPrice($item['Цена']);
         } else {
@@ -1278,9 +1275,9 @@ class PriceTagGenerator
                 <div class="frame-15-8">
                     <p class="text-9"><span class="text-white">';
         
-        // Рассрочка
-        if (isset($item['Рассрочка']) && !empty($item['Рассрочка'])) {
-            $html .= htmlspecialchars($item['Рассрочка']);
+        // Рассрочка (в зеленом блоке) - из поля "В месяц"
+        if (isset($item['В месяц']) && !empty($item['В месяц'])) {
+            $html .= 'от ' . number_format($item['В месяц'], 0, ',', ' ') . ' сум/мес';
         } else {
             $html .= '—';
         }
@@ -1323,11 +1320,11 @@ class PriceTagGenerator
                     <div class="frame-6-10">
                         <div class="frame-7-11">
                             <div class="icons-sbi-12">
-                                <img src="images/vector-13.svg" class="vector-13" alt="vector" />
+                                <img src="images/vector-13.svg" class="vector" alt="vector" />
                             </div>
                             <div class="frame-12-14">
-                                <p class="text-15"><span class="text-rgb-107-107-107">Камера</span></p>
-                                <p class="text-16"><span class="text-rgb-30-30-30">';
+                                <p class="text-15 char-t"><span class="text-rgb-107-107-107">Камера</span></p>
+                                <p class="text-16 char-d"><span class="text-rgb-30-30-30">';
         
         // Характеристика камеры
         if (isset($item['Камера ']) && !empty($item['Камера '])) {
@@ -1341,11 +1338,11 @@ class PriceTagGenerator
                         </div>
                         <div class="frame-8-17">
                             <div class="icons-sbi-18">
-                                <img src="images/vector-19.svg" class="vector-19" alt="vector" />
+                                <img src="images/vector-19.svg" class="vector" alt="vector" />
                             </div>
                             <div class="frame-12-20">
-                                <p class="text-21"><span class="text-rgb-107-107-107">Дисплей</span></p>
-                                <p class="text-22"><span class="text-rgb-30-30-30">';
+                                <p class="text-21 char-t"><span class="text-rgb-107-107-107">Дисплей</span></p>
+                                <p class="text-22 char-d"><span class="text-rgb-30-30-30">';
         
         // Характеристика дисплея
         if (isset($item['Дисплей']) && !empty($item['Дисплей'])) {
@@ -1361,11 +1358,11 @@ class PriceTagGenerator
                     <div class="frame-5-23">
                         <div class="frame-7-24">
                             <div class="icons-sbi-25">
-                                <img src="images/vector-26.svg" class="vector-26" alt="vector" />
+                                <img src="images/vector-26.svg" class="vector" alt="vector" />
                             </div>
                             <div class="frame-12-27">
-                                <p class="text-28"><span class="text-rgb-107-107-107">Батарея</span></p>
-                                <p class="text-29"><span class="text-rgb-30-30-30">';
+                                <p class="text-28 char-t"><span class="text-rgb-107-107-107">Батарея</span></p>
+                                <p class="text-29 char-d"><span class="text-rgb-30-30-30">';
         
         // Характеристика батареи
         if (isset($item['Батарея']) && !empty($item['Батарея'])) {
@@ -1379,11 +1376,11 @@ class PriceTagGenerator
                         </div>
                         <div class="frame-8-30">
                             <div class="icons-sbi-31">
-                                <img src="images/vector-32.svg" class="vector-32" alt="vector" />
+                                <img src="images/vector-32.svg" class="vector" alt="vector" />
                             </div>
                             <div class="frame-12-33">
-                                <p class="text-34"><span class="text-rgb-107-107-107">Память</span></p>
-                                <p class="text-35"><span class="text-rgb-30-30-30">';
+                                <p class="text-34 char-t"><span class="text-rgb-107-107-107">Память</span></p>
+                                <p class="text-35 char-d"><span class="text-rgb-30-30-30">';
         
         // Характеристика памяти
         if (isset($item['Память']) && !empty($item['Память'])) {
@@ -1408,7 +1405,7 @@ class PriceTagGenerator
         
         // Цена в рассрочку - если пустая, показываем прочерк
         if (isset($item['Цена с рассрочкой']) && !empty($item['Цена с рассрочкой'])) {
-            $html .= $this->formatPrice($item['Цена с рассрочкой']);
+            $html .= number_format($item['Цена с рассрочкой'], 0, ',', ' ');
         } else {
             // Если цены в рассрочку нет, показываем прочерк
             $html .= '—';

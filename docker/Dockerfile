@@ -22,7 +22,7 @@ RUN docker-php-ext-install \
     intl
 
 # Устанавливаем Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+COPY --from=composer:latest /usr/bin/c                              omposer /usr/bin/composer
 
 # Создаем рабочую директорию
 WORKDIR /app

@@ -26,7 +26,7 @@ img {
 .text-3 {
   font-family: var(--font-family-inter);
   font-weight: 500;
-  font-size: 14px;
+  font-size: 13px;
   color: #000;
   text-align: center;
   width: 100%;
@@ -35,15 +35,15 @@ img {
 .text-7 {
   font-family: var(--font-family-inter);
   font-weight: 700;
-  font-size: 16px;
+  font-size: 15px;
   color: #000;
 }
 
-.text-7 span {
+/* .text-7 span {
   line-height: 19px;
   height: 18px;
   display: block;
-}
+} */
 
 /* Стили для блоков */
 .frame-30-2 {
@@ -123,7 +123,7 @@ img {
     flex-direction: column;
     align-items: center;
   }
-  
+
   .block {
     max-width: 100%;
     flex: 0 0 auto;
@@ -135,37 +135,37 @@ img {
   @page {
     margin: 0 !important;
   }
-  
+
   .flex-block:nth-child(1n+1) {
     break-before: page;
   }
-  
+
   .flex-block:first-child {
     break-before: auto;
   }
-  
+
   .node-1 {
     padding: 0 !important;
     gap: 0 !important;
     margin: 0 !important;
   }
-  
+
   .flex-block {
     margin: 0 !important;
     padding: 0 !important;
   }
-  
+
   .block {
     break-inside: avoid;
     margin: 0 !important;
     padding: 4px 8px !important;
   }
-  
+
   body {
     margin: 0 !important;
     padding: 0 !important;
   }
-  
+
   .flex-block:nth-child(1n+1) {
     padding-top: 0 !important;
     margin-top: 0 !important;
